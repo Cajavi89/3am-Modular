@@ -120,7 +120,7 @@ function isValidPhone(value) {
   return /^[+()\s\d-]{7,20}$/.test(value) && value.replace(/\D/g, "").length >= 7;
 }
 
-const CONTACT_EMAIL = "comercial@3amodular.com";
+const CONTACT_EMAIL = "dousan28@gmail.com";
 const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${CONTACT_EMAIL}`;
 const submitBtn = form.querySelector('button[type="submit"]');
 
