@@ -120,7 +120,11 @@ function isValidPhone(value) {
   return /^[+()\s\d-]{7,20}$/.test(value) && value.replace(/\D/g, "").length >= 7;
 }
 
-form.addEventListener("submit", (event) => {
+const CONTACT_EMAIL = "comercial@3amodular.com";
+const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${CONTACT_EMAIL}`;
+const submitBtn = form.querySelector('button[type="submit"]');
+
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   formStatus.textContent = "";
   formStatus.classList.remove("is-error");
@@ -161,12 +165,11 @@ form.addEventListener("submit", (event) => {
     return;
   }
 
-  const inquiries = JSON.parse(localStorage.getItem("bam-inquiries") || "[]");
-  inquiries.push({
-    ...data,
-    createdAt: new Date().toISOString(),
-  });
-  localStorage.setItem("bam-inquiries", JSON.stringify(inquiries));
+  if (data._honey) {
+    form.reset();
+    formStatus.textContent = "Mensaje enviado. Te responderemos pronto.";
+    return;
+  }
 
   const lineLabels = {
     publicidad: "Material publicitario",
@@ -174,12 +177,40 @@ form.addEventListener("submit", (event) => {
     ambas: "Ambas líneas",
   };
 
-  const subject = encodeURIComponent(`Consulta web · ${lineLabels[data.line] || data.line}`);
-  const body = encodeURIComponent(
-    `Nombre: ${data.name}\nCorreo: ${data.email}\nTeléfono: ${data.phone || "No indicado"}\nLínea: ${lineLabels[data.line] || data.line}\n\n${data.message}`
-  );
+  submitBtn.disabled = true;
+  formStatus.textContent = "Enviando mensaje…";
 
-  form.reset();
-  formStatus.textContent = "Abriendo tu correo para enviar a comercial@3amodular.com";
-  window.location.href = `mailto:comercial@3amodular.com?subject=${subject}&body=${body}`;
+  try {
+    const response = await fetch(FORMSUBMIT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        name: data.name.trim(),
+        email: data.email.trim(),
+        phone: data.phone.trim() || "No indicado",
+        line: lineLabels[data.line] || data.line,
+        message: data.message.trim(),
+        _subject: `Consulta web · ${lineLabels[data.line] || data.line}`,
+        _template: "table",
+        _captcha: "false",
+      }),
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || result.success === "false" || result.success === false) {
+      throw new Error(result.message || "No se pudo enviar");
+    }
+
+    form.reset();
+    formStatus.textContent = `Mensaje enviado a ${CONTACT_EMAIL}. Te responderemos pronto.`;
+  } catch (error) {
+    formStatus.classList.add("is-error");
+    formStatus.textContent = "No se pudo enviar ahora. Escríbenos a comercial@3amodular.com o por WhatsApp.";
+  } finally {
+    submitBtn.disabled = false;
+  }
 });

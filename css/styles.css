@@ -134,6 +134,20 @@ p { margin: 0 0 1em; }
 
 .btn--full { width: 100%; }
 
+.btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+  transform: none;
+}
+
+.hp {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
 .text-link {
   display: inline-flex;
   margin-top: 8px;
@@ -542,6 +556,7 @@ p { margin: 0 0 1em; }
 .contact__details a:hover { color: #fff; }
 
 .form {
+  position: relative;
   padding: 28px;
   border-radius: 24px;
   border: 1px solid var(--line);
